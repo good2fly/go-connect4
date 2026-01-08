@@ -16,10 +16,10 @@ const (
 // Board represents a 6x7 Connect 4 grid.
 // The zero-value of Board is an empty grid ready to play.
 type Board struct {
-	Width        int
-	Height       int
-	Grid         [][]Cell
-	TopEmptyRows []int
+	width        int
+	height       int
+	grid         [][]Cell
+	topEmptyRows []int
 }
 
 func NewBoard(width, height int) *Board {
@@ -38,41 +38,58 @@ func NewBoard(width, height int) *Board {
 	top := make([]int, width)
 
 	return &Board{
-		Width:        width,
-		Height:       height,
-		Grid:         grid,
-		TopEmptyRows: top,
+		width:        width,
+		height:       height,
+		grid:         grid,
+		topEmptyRows: top,
 	}
 }
 
 func (b *Board) Clone() *Board {
 	newBoard := &Board{
-		Width:        b.Width,
-		Height:       b.Height,
-		Grid:         make([][]Cell, b.Height),
-		TopEmptyRows: slices.Clone(b.TopEmptyRows),
+		width:        b.width,
+		height:       b.height,
+		grid:         make([][]Cell, b.height),
+		topEmptyRows: slices.Clone(b.topEmptyRows),
 	}
-	for i := range b.Grid {
-		newBoard.Grid[i] = slices.Clone(b.Grid[i])
+	for i := range b.grid {
+		newBoard.grid[i] = slices.Clone(b.grid[i])
 	}
 	return newBoard
 }
 
 func (b *Board) Reset() {
-	for i := range b.Grid {
-		for j := range b.Grid[i] {
-			b.Grid[i][j] = EMPTY
+	for i := range b.grid {
+		for j := range b.grid[i] {
+			b.grid[i][j] = EMPTY
 		}
 	}
-	for i := range b.TopEmptyRows {
-		b.TopEmptyRows[i] = 0
+	for i := range b.topEmptyRows {
+		b.topEmptyRows[i] = 0
 	}
 }
 
+func (b *Board) Width() int {
+	return b.width
+}
+
+func (b *Board) Height() int {
+	return b.height
+}
+
+func (b *Board) CellAt(row, col int) Cell {
+	return b.grid[row][col]
+}
+
+func (b *Board) TopNonEmptyRow(col int) int {
+	return b.topEmptyRows[col] - 1
+}
+
+// ValidMoves returns a slice of column indices where a piece can be legally placed.
 func (b *Board) ValidMoves() []int {
 	moves := []int{}
-	for col := 0; col < b.Width; col++ {
-		if b.TopEmptyRows[col] < b.Height {
+	for col := 0; col < b.width; col++ {
+		if b.topEmptyRows[col] < b.height {
 			moves = append(moves, col)
 		}
 	}
@@ -80,30 +97,30 @@ func (b *Board) ValidMoves() []int {
 }
 
 func (b *Board) IsValidMove(col int) bool {
-	return col >= 0 && col < b.Width && b.TopEmptyRows[col] < b.Height
+	return col >= 0 && col < b.width && b.topEmptyRows[col] < b.height
 }
 
 // MakeMove places a piece for the given player in the specified column.
 // It returns the Move made or an error if the move is invalid.
 func (b *Board) MakeMove(col int, player Cell) error {
-	if col < 0 || col >= b.Width {
+	if col < 0 || col >= b.width {
 		return fmt.Errorf("invalid column %d", col)
 	}
-	row := b.TopEmptyRows[col]
+	row := b.topEmptyRows[col]
 	if !b.IsValidMove(col) {
 		return fmt.Errorf("column is full %d", col)
 	}
-	b.Grid[row][col] = player
-	b.TopEmptyRows[col]++
+	b.grid[row][col] = player
+	b.topEmptyRows[col]++
 	return nil
 }
 
 func (b *Board) UndoMove(col int) error {
-	if col < 0 || col >= b.Width {
+	if col < 0 || col >= b.width {
 		return fmt.Errorf("invalid column %d", col)
 	}
-	b.TopEmptyRows[col]--
-	b.Grid[b.TopEmptyRows[col]][col] = EMPTY
+	b.topEmptyRows[col]--
+	b.grid[b.topEmptyRows[col]][col] = EMPTY
 	return nil
 }
 
@@ -112,8 +129,8 @@ func (b *Board) UndoMove(col int) error {
 // A win is defined as at least 4 consecutive pieces of the same kind in any direction (horizontal, vertical, diagonal).
 func (b *Board) WasWinningMove(move int) bool {
 	moveCol := move
-	moveRow := b.TopEmptyRows[moveCol] - 1
-	player := b.Grid[moveRow][moveCol]
+	moveRow := b.topEmptyRows[moveCol] - 1
+	player := b.grid[moveRow][moveCol]
 
 	directions := [][2]int{
 		{1, 0},  // Vertical
@@ -130,7 +147,7 @@ func (b *Board) WasWinningMove(move int) bool {
 			for {
 				r += d * dir[0]
 				c += d * dir[1]
-				if r < 0 || r >= b.Height || c < 0 || c >= b.Width || b.Grid[r][c] != player {
+				if r < 0 || r >= b.height || c < 0 || c >= b.width || b.grid[r][c] != player {
 					break
 				}
 				count++
@@ -145,8 +162,8 @@ func (b *Board) WasWinningMove(move int) bool {
 
 // IsFull checks if the board is completely filled (i.e., no more valid moves).
 func (b *Board) IsFull() bool {
-	for col := 0; col < b.Width; col++ {
-		if b.TopEmptyRows[col] < b.Height {
+	for col := 0; col < b.width; col++ {
+		if b.topEmptyRows[col] < b.height {
 			return false
 		}
 	}
@@ -154,22 +171,22 @@ func (b *Board) IsFull() bool {
 }
 
 // ParseFromString populates the board state from a string representation.
-// The string should be of length Width*Height, with characters 'X', 'O', or ' ', representing
+// The string should be of length width*height, with characters 'X', 'O', or ' ', representing
 // each cell in row-major order (bottom row first).
 func (b *Board) ParseFromString(boardStr string) bool {
-	if len(boardStr) != b.Width*b.Height {
+	if len(boardStr) != b.width*b.height {
 		return false
 	}
-	for i := range b.TopEmptyRows {
-		b.TopEmptyRows[i] = 0
+	for i := range b.topEmptyRows {
+		b.topEmptyRows[i] = 0
 	}
-	for strRow := 0; strRow < b.Height; strRow++ {
-		for col := 0; col < b.Width; col++ {
-			boardRow := b.Height - 1 - strRow
-			piece := Cell(boardStr[strRow*b.Width+col])
-			b.Grid[boardRow][col] = piece
-			if piece != EMPTY && b.TopEmptyRows[col] < boardRow+1 {
-				b.TopEmptyRows[col] = boardRow + 1
+	for strRow := 0; strRow < b.height; strRow++ {
+		for col := 0; col < b.width; col++ {
+			boardRow := b.height - 1 - strRow
+			piece := Cell(boardStr[strRow*b.width+col])
+			b.grid[boardRow][col] = piece
+			if piece != EMPTY && b.topEmptyRows[col] < boardRow+1 {
+				b.topEmptyRows[col] = boardRow + 1
 			}
 		}
 	}

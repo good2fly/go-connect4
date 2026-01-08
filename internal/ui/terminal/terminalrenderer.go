@@ -18,17 +18,17 @@ func (tr *TerminalRenderer) Game(g *game.Game, lastMoveRow int, lastMoveCol int)
 
 	// Build the column headers (0 1 2...)
 	sb.WriteString("\033[34m|\033[0m")
-	for c := 0; c < b.Width; c++ {
+	for c := 0; c < b.Width(); c++ {
 		sb.WriteString(fmt.Sprintf("  %d \033[34m|\033[0m", c))
 	}
 	sb.WriteString("\n")
 
 	// Print rows from Top to Bottom
-	for r := b.Height - 1; r >= 0; r-- {
-		sb.WriteString("\033[34m" + "+" + strings.Repeat("----+", b.Width) + "\033[0m\n")
+	for r := b.Height() - 1; r >= 0; r-- {
+		sb.WriteString("\033[34m" + "+" + strings.Repeat("----+", b.Width()) + "\033[0m\n")
 		sb.WriteString("\033[34m|\033[0m")
-		for c := 0; c < b.Width; c++ {
-			cell := b.Grid[r][c]
+		for c := 0; c < b.Width(); c++ {
+			cell := b.CellAt(r, c)
 			switch cell {
 			case game.PLAYER1:
 				if lastMoveRow == r && lastMoveCol == c {
@@ -50,7 +50,7 @@ func (tr *TerminalRenderer) Game(g *game.Game, lastMoveRow int, lastMoveCol int)
 	}
 
 	// Bottom border
-	sb.WriteString("\033[34m+" + strings.Repeat("----+", b.Width) + "\033[0m\n")
+	sb.WriteString("\033[34m+" + strings.Repeat("----+", b.Width()) + "\033[0m\n")
 	fmt.Fprintln(tr.Output, sb.String())
 }
 

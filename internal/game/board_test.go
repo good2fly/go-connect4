@@ -73,7 +73,7 @@ func TestParseFromString(t *testing.T) {
 			}
 
 			// Check the gravity cache
-			for i, got := range b.TopEmptyRows {
+			for i, got := range b.topEmptyRows {
 				if got != tt.wantTopRows[i] {
 					t.Errorf("Col %d: TopEmptyRows = %d, want %d", i, got, tt.wantTopRows[i])
 				}
@@ -81,9 +81,9 @@ func TestParseFromString(t *testing.T) {
 
 			// Check a list of specific critical cells
 			for _, wantCell := range tt.wantCells {
-				if b.Grid[wantCell.r][wantCell.c] != wantCell.val {
+				if b.grid[wantCell.r][wantCell.c] != wantCell.val {
 					t.Errorf("Cell [%d][%d] = %c, want %c",
-						wantCell.r, wantCell.c, b.Grid[wantCell.r][wantCell.c], wantCell.val)
+						wantCell.r, wantCell.c, b.grid[wantCell.r][wantCell.c], wantCell.val)
 				}
 			}
 		})

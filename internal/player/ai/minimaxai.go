@@ -100,15 +100,15 @@ func switchTurn(turn TurnType) TurnType {
 
 func (ai *MinimaxAI) evaluate(board *game.Board, lastMove int, turnType TurnType) int {
 	score := 0
-	midCol := board.Width >> 1
+	midCol := board.Width() >> 1
 
-	for col := 0; col < board.Width; col++ {
+	for col := 0; col < board.Width(); col++ {
 		// Weight the center column more (e.g., center = 3, edges = 0)
 		dist := midCol - Abs(midCol-col)
-		for row := 0; row < board.Height; row++ {
-			if board.Grid[row][col] == ai.Self {
+		for row := 0; row < board.Height(); row++ {
+			if board.CellAt(row, col) == ai.Self {
 				score -= dist // AI wants a negative score
-			} else if board.Grid[row][col] == ai.Other {
+			} else if board.CellAt(row, col) == ai.Other {
 				score += dist // Human wants a positive score
 			}
 		}

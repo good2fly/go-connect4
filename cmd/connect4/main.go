@@ -4,18 +4,19 @@ import (
 	"flag"
 	"os"
 
-	"uac.tech/connect4/internal/ai"
 	"uac.tech/connect4/internal/game"
+	"uac.tech/connect4/internal/player/ai"
+	player "uac.tech/connect4/internal/player/human"
 	"uac.tech/connect4/internal/ui/terminal"
 )
 
 func main() {
 
-	// Define flags (Pointer approach)
-	// flag.Int(name, default value, description)
 	aiDepth := flag.Int("depth", 4, "Depth for the minimax AI (1-8)")
 	playerName := flag.String("name", "Alice", "Human player name")
 	aiName := flag.String("ainame", "Bob", "AI player name")
+	width := flag.Int("width", 7, "Width of the board")
+	height := flag.Int("height", 6, "Height of the board")
 	isAiFirst := flag.Bool("aifirst", false, "Whether the AI plays first")
 	isDebug := flag.Bool("debug", false, "Enable debug logging")
 
@@ -24,7 +25,7 @@ func main() {
 
 	player1 := game.Player{
 		Name:  *playerName,
-		Input: &terminal.HumanCLI{Input: os.Stdin, Output: os.Stdout},
+		Input: &player.HumanCLI{Input: os.Stdin, Output: os.Stdout},
 		Cell:  game.PLAYER1,
 	}
 	// player2 := game.Player{
@@ -47,7 +48,7 @@ func main() {
 	}
 	renderer := &terminal.TerminalRenderer{Output: os.Stdout}
 
-	game := game.NewGame(7, 6, &player2, &player1, renderer)
+	game := game.NewGame(*width, *height, &player1, &player2, renderer)
 	game.Play()
 
 }

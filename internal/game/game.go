@@ -26,7 +26,7 @@ type Game struct {
 	Board     *Board
 	Player1   Player
 	Player2   Player
-	Renderer  GameRenderer
+	renderer  GameRenderer
 }
 
 type GameRenderer interface {
@@ -42,7 +42,7 @@ func NewGame(width, height int, player1 *Player, player2 *Player, renderer GameR
 		Board:     NewBoard(width, height),
 		Player1:   *player1,
 		Player2:   *player2,
-		Renderer:  renderer,
+		renderer:  renderer,
 	}
 }
 
@@ -52,16 +52,16 @@ func (g *Game) Play() {
 	lastMoveRow := -1
 	currentPlayer := &g.Player1
 	for {
-		g.Renderer.Message(fmt.Sprintf("\n%s's turn\n", currentPlayer.Name))
-		g.Renderer.Game(g, lastMoveRow, lastMovCol)
+		g.renderer.Message(fmt.Sprintf("\n%s's turn\n", currentPlayer.Name))
+		g.renderer.Game(g, lastMoveRow, lastMovCol)
 		moveCol := currentPlayer.Input.GetMove(g.Board)
 		err := g.Board.MakeMove(moveCol, currentPlayer.Cell)
 		if err != nil {
-			g.Renderer.Error(err)
+			g.renderer.Error(err)
 			continue
 		}
 		lastMovCol = moveCol
-		lastMoveRow = g.Board.TopEmptyRows[moveCol] - 1
+		lastMoveRow = g.Board.TopNonEmptyRow(moveCol)
 		if g.Board.WasWinningMove(moveCol) {
 			// Handle win condition
 			if currentPlayer == &g.Player1 {
@@ -69,12 +69,12 @@ func (g *Game) Play() {
 			} else {
 				g.GameState = Player2Win
 			}
-			g.Renderer.GameOver(g)
+			g.renderer.GameOver(g)
 			break
 		}
 		if g.Board.IsFull() {
 			g.GameState = Draw
-			g.Renderer.GameOver(g)
+			g.renderer.GameOver(g)
 			break
 		}
 		// Switch players
